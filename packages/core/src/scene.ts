@@ -1,7 +1,13 @@
-import { Widget } from './widget'
+import { Widget } from "./widget";
 
-export class Scene {
-  elapsed = 0
+export interface Scene {
+  elapsed: number
+  root: Widget
+}
 
-  constructor(public root: Widget) {}
+export function createScene(root: Widget): Scene {
+  return {
+    elapsed: 0,
+    root
+  }
 }

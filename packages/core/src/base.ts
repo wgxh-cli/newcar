@@ -1,7 +1,8 @@
-import { defineWidgetInput, Widget, WidgetContext } from "./widget";
+import { defineWidgetInput, registerWidget, Widget, WidgetContext } from "./widget";
+import { $ck } from "./engine";
 import type { Canvas } from "canvaskit-wasm";
-export interface WidgetOptions {
-  style?: WidgetStyle
+export interface BaseOptions {
+  style?: BaseStyle
   x?: number
   y?: number
   centerX?: number
@@ -10,14 +11,14 @@ export interface WidgetOptions {
   children?: Widget[]
 }
 
-export interface WidgetStyle {
+export interface BaseStyle {
   scaleX?: number
   scaleY?: number
   rotation?: number
   transparency?: number
 }
 
-const Base = defineWidgetInput({
+const input = defineWidgetInput({
   init(context: WidgetContext, attrs: Record<string, unknown>) {
     return context
   },
@@ -26,3 +27,5 @@ const Base = defineWidgetInput({
   },
   draw(canvas: Canvas) {}
 })
+
+export const Base = registerWidget(input, $ck)

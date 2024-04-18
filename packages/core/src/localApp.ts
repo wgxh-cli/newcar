@@ -1,6 +1,5 @@
 import type { Canvas, CanvasKit, Surface } from 'canvaskit-wasm'
 import type { Scene } from './scene'
-import { initial } from './initial'
 import { deepClone } from './utils/deepClone'
 import { patch, shallowEqual } from './patch'
 import { Widget } from './widget'
@@ -53,7 +52,7 @@ export class LocalApp {
     for (const plugin of app.plugins) {
       plugin.beforeUpdate(app, app.scene.elapsed)
     }
-    initial(app.scene.root, app.ck, app.canvas)
+    app.scene.root.create(app.scene.root as Record<string, any>)
     // Contrast the old widget and the new widget and update them.
     for (const plugin of app.plugins) {
       plugin.beforePatch(app, app.scene.elapsed, app.last, app.scene.root)
@@ -62,9 +61,8 @@ export class LocalApp {
       plugin.afterPatch(app, app.scene.elapsed, app.last, app.scene.root)
     }
     (function draw(widget: Widget) {
-      widget.init(app.ck)
       app.canvas.save()
-      widget.update(app.canvas)
+      widget.draw(app.canvas, app.scene.root as Record<string, any>)
       for (const child of widget.children) {
         draw(child)
       }

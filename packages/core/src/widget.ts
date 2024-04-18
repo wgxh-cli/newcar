@@ -1,5 +1,6 @@
 import { Canvas, CanvasKit, Paint, Path, RRect } from 'canvaskit-wasm'
 import type { Animation, AnimationInstance } from './animation'
+import { $ck } from './engine'
 
 export interface WidgetContext {
   createPath(): Path
@@ -40,6 +41,7 @@ export interface Widget {
   attrs: Record<string, unknown>
   children: Widget[]
   context: WidgetContext
+  style: Record<string, unknown>
   create(attrs: Record<string, unknown>): this
   animationInstances: AnimationInstance[]
   add(widget: Widget): this
@@ -52,13 +54,15 @@ export interface Widget {
   runAnimation(elapsed: number): void
   setUpdate(updateFunc: (elapsed: number, widget: Widget) => void): this
   updates: ((elapsed: number, widget: Widget) => void)[]
+  updateMap: Map<string, () => void>
+  draw(canvas: Canvas, attrs: Record<string, unknown>): void
+  key: string
 }
 
 export interface WidgetInput {
   init(context: WidgetContext, attrs: Record<string, unknown>): WidgetContext
   predraw(
     operations: WidgetContext,
-    prop: string,
     attrs: Record<string, unknown>,
   ): Map<string, () => void>
   draw(canvas: Canvas, attrs: Record<string, unknown>): void
@@ -69,6 +73,8 @@ export function defineWidgetInput(input: WidgetInput) {
   return input
 }
 
+export const context = createWidgetContext($ck)
+
 export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
   return {
     attrs: {},
@@ -76,9 +82,17 @@ export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
     context: createWidgetContext(ck),
     animationInstances: [],
     updates: [],
+    style: {},
+    updateMap: null,
+    key: null,
+    draw: input.draw,
     create(attrs: Record<string, unknown>) {
       this.attrs = attrs
       this.context = input.init(this.context, this.attrs)
+      this.updateMap = input.predraw(context, this as Record<string, any>)
+      this.key = `widget-${1}-${performance.now()}-${Math.random()
+        .toString(16)
+        .slice(2)}`
       for (const attr in this.attrs) {
         ;(this as Record<string, any>)[attr] = (
           this.attrs as Record<string, unknown>

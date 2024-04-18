@@ -1,5 +1,4 @@
 import { Canvas, CanvasKit } from 'canvaskit-wasm'
-import { AsyncWidget, AsyncWidgetResponse } from './asyncWidget'
 import { Widget } from './widget'
 import { isEqual } from '@newcar/utils'
 
@@ -70,20 +69,20 @@ export async function patch(
   const differences = shallowEqual(old, now)
   for (const param of differences) {
     try {
-      now.preupdate(ck, param)
+      now.updateMap.get(param)()
     } catch {}
     if (param === 'style') {
       const contrasts = shallowEqual(old.style, now.style)
       for (const contrast of contrasts) {
         try {
-          await now.preupdate(ck, `style.${contrast}`)
+          now.updateMap.get(`style.${param}`)()
         } catch {}
       }
     }
   }
 
   try {
-    now.update(canvas)
+    now.draw(canvas, now as Record<string, any>)
   } catch {}
 
   const oldKeyToIdx = new Map<string, number>()

@@ -1,6 +1,5 @@
 import type { Canvas, CanvasKit, Surface } from 'canvaskit-wasm'
 import type { Scene } from './scene'
-import { initial } from './initial'
 import { deepClone } from './utils/deepClone'
 import { patch, shallowEqual } from './patch'
 import { Widget } from './widget'
@@ -50,10 +49,6 @@ export class App {
   static update(app: App, canvas: Canvas): void {
     for (const plugin of app.plugins) {
       plugin.beforeUpdate(app, app.scene.elapsed)
-    }
-    // If this updating is this scene's origin, initial this scene.
-    if (app.scene.elapsed === 0) {
-      initial(app.scene.root, app.ck, canvas)
     }
     // Contrast the old widget and the new widget and update them.
     for (const plugin of app.plugins) {

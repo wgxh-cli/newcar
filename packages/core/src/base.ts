@@ -2,7 +2,6 @@ import {
   defineWidgetInput,
   registerWidget,
   Widget,
-  WidgetContext,
   WidgetInput,
 } from './widget'
 import { $ck } from './engine'
@@ -24,14 +23,12 @@ export interface BaseStyle {
   transparency?: number
 }
 
-export function base(): BaseOptions & WidgetInput {
+export function base(): WidgetInput {
   return defineWidgetInput({
-    init(context: WidgetContext, attrs: BaseOptions) {
-      return context
-    },
-    predraw(context: WidgetContext, attr: BaseOptions) {
+    init(ck: CanvasKit) {},
+    predraw(ck: CanvasKit) {
       return new Map()
     },
-    draw(canvas: Canvas, attr: BaseOptions) {},
+    draw(canvas: Canvas) {},
   })
 }

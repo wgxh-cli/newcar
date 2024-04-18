@@ -1,8 +1,23 @@
 import { Canvas, CanvasKit, Paint, Path, RRect } from 'canvaskit-wasm'
 import type { Animation, AnimationInstance } from './animation'
 
+export interface WidgetInput {
+  attrs?: Record<string, unknown>
+  params?: any[]
+  init?(ck: CanvasKit): void
+  predraw?(ck: CanvasKit): Map<string, () => void>
+  draw?(canvas: Canvas): void
+}
+
+export function defineWidgetInput(input: WidgetInput): WidgetInput {
+  return {
+    attrs: {},
+    params: [],
+    ...input
+  }
+}
+
 export interface Widget {
-  attrs: Record<string, unknown> // The unnecessary parameters, which included style
   create(...parameters: any[]): this // User API for create a widget
   animationInstances: AnimationInstance[] // The animations of this widget
   add(widget: Widget): this
@@ -20,30 +35,19 @@ export interface Widget {
   key: string
   set(attrs: Record<string, unknown>): Widget
   children: Widget[]
+  attrs: Record<string, unknown | Record<string, unknown>>
+  params: any[]
 }
 
-export interface WidgetInput {
-  init(ck: CanvasKit, attrs: Record<string, unknown>): void
-  predraw(
-    attrs: Record<string, unknown>,
-    ck: CanvasKit,
-  ): Map<string, () => void>
-  draw(canvas: Canvas, attrs: Record<string, unknown>): void
-  create?(...parameters: unknown[]): Widget
-}
-
-export function defineWidgetInput(input: WidgetInput) {
-  return input
-}
-
-export function registerWidget<T extends Widget>(
+export function registerWidget(
   input: WidgetInput,
   ck: CanvasKit,
-): T {
+): Widget {
   return {
     attrs: {
       style: {},
     },
+    params: [],
     children: [],
     animationInstances: [],
     updates: [],
@@ -51,22 +55,20 @@ export function registerWidget<T extends Widget>(
     key: null,
     draw: input.draw,
     set(attrs: Record<string, unknown>) {
-      this.attrs = {
-        ...this.attrs,
-        ...attrs,
-      }
-      for (const attr in this.attrs) {
+      input.attrs = attrs
+      for (const attr in input.attrs) {
         ;(this as Record<string, any>)[attr] = (
-          this.attrs as Record<string, unknown>
+          input.attrs as Record<string, unknown>
         )[attr]
       }
       return this
     },
     create(...parameters) {
       // Firstly, Initialize it, including create Paint, Path, etc and there default value
-      input.init(ck, this.attrs)
+      input.params.push(...parameters)
+      input.init(ck)
       // Secondly, get the map that parameters and connect his effect function
-      this.updateMap = input.predraw(this as Record<string, any>, ck)
+      this.updateMap = input.predraw(ck)
       // Create a "personal" key for every widget with random
       this.key = `widget-${1}-${performance.now()}-${Math.random()
         .toString(16)

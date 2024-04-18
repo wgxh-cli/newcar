@@ -1,49 +1,10 @@
 import { Canvas, CanvasKit, Paint, Path, RRect } from 'canvaskit-wasm'
 import type { Animation, AnimationInstance } from './animation'
-import { $ck } from './engine'
-
-export interface WidgetContext {
-  createPath(): Path
-  createPaint(): Paint
-  createRect(top: number, left: number, bottom: number, right: number): RRect
-  data: {
-    paints?: Paint[]
-    path?: Path[]
-    rects?: RRect[]
-  }
-}
-
-function createWidgetContext(ck: CanvasKit): WidgetContext {
-  return {
-    data: {
-      paints: [],
-      path: [],
-    },
-    createPath() {
-      const path = new ck.Path()
-      this.data.path.push(path)
-      return path
-    },
-    createPaint() {
-      const paint = new ck.Paint()
-      this.data.paints.push(paint)
-      return paint
-    },
-    createRect(top: number, left: number, bottom: number, right: number) {
-      const rect = ck.LTRBRect(left, top, right, bottom)
-      this.data.rects.push(rect)
-      return rect
-    },
-  }
-}
 
 export interface Widget {
-  attrs: Record<string, unknown>
-  children: Widget[]
-  context: WidgetContext
-  style: Record<string, unknown>
-  create(...parameters: any[]): this
-  animationInstances: AnimationInstance[]
+  attrs: Record<string, unknown> // The unnecessary parameters, which included style
+  create(...parameters: any[]): this // User API for create a widget
+  animationInstances: AnimationInstance[] // The animations of this widget
   add(widget: Widget): this
   animate(
     animation: Animation<Widget>,
@@ -57,14 +18,15 @@ export interface Widget {
   updateMap: Map<string, () => void>
   draw(canvas: Canvas, attrs: Record<string, unknown>): void
   key: string
-  set(attrs: Record<string, unknown>): void
+  set(attrs: Record<string, unknown>): Widget
+  children: Widget[]
 }
 
 export interface WidgetInput {
-  init(context: WidgetContext, attrs: Record<string, unknown>): WidgetContext
+  init(ck: CanvasKit, attrs: Record<string, unknown>): void
   predraw(
-    operations: WidgetContext,
     attrs: Record<string, unknown>,
+    ck: CanvasKit,
   ): Map<string, () => void>
   draw(canvas: Canvas, attrs: Record<string, unknown>): void
   create?(...parameters: unknown[]): Widget
@@ -74,31 +36,41 @@ export function defineWidgetInput(input: WidgetInput) {
   return input
 }
 
-export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
+export function registerWidget<T extends Widget>(
+  input: WidgetInput,
+  ck: CanvasKit,
+): T {
   return {
-    attrs: {},
+    attrs: {
+      style: {},
+    },
     children: [],
-    context: createWidgetContext(ck),
     animationInstances: [],
     updates: [],
-    style: {},
     updateMap: null,
     key: null,
     draw: input.draw,
     set(attrs: Record<string, unknown>) {
-      this.attrs = attrs
-    },
-    create(...parameters) {
-      this.context = input.init(this.context, this.attrs)
-      this.updateMap = input.predraw(this.context, this as Record<string, any>)
-      this.key = `widget-${1}-${performance.now()}-${Math.random()
-        .toString(16)
-        .slice(2)}`
+      this.attrs = {
+        ...this.attrs,
+        ...attrs,
+      }
       for (const attr in this.attrs) {
         ;(this as Record<string, any>)[attr] = (
           this.attrs as Record<string, unknown>
         )[attr]
       }
+      return this
+    },
+    create(...parameters) {
+      // Firstly, Initialize it, including create Paint, Path, etc and there default value
+      input.init(ck, this.attrs)
+      // Secondly, get the map that parameters and connect his effect function
+      this.updateMap = input.predraw(this as Record<string, any>, ck)
+      // Create a "personal" key for every widget with random
+      this.key = `widget-${1}-${performance.now()}-${Math.random()
+        .toString(16)
+        .slice(2)}`
       return this
     },
     add(widget: Widget) {
@@ -143,11 +115,18 @@ export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
             )
           }
         }
+        for (const update of this.updates) {
+          update(elapsed, this)
+        }
+
+        for (const child of this.children) {
+          child.runAnimation(elapsed)
+        }
       }
     },
     setUpdate(updateFunc: (elapsed: number, widget: Widget) => void) {
       this.updates.push(updateFunc)
-  
+
       return this
     },
   }

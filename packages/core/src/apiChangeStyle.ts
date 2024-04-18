@@ -1,6 +1,7 @@
-import { Base, BaseStyle } from './base'
+import { base, BaseStyle } from './base'
 import { Animation, defineAnimation } from './animation'
 import { MaybeArray, PickNumberKeys } from './types'
+import { Widget } from './widget'
 
 /**
  * Easing function type, which takes a progress ratio and returns an adjusted ratio.
@@ -17,12 +18,12 @@ type EasingFunction = (progress: number) => number
  * @param by Optional easing function to adjust the animation progress, can be overridden by params.by.
  * @returns An Animation object.
  */
-export function changeStyle<T extends typeof Base>(
+export function changeStyle<T extends ReturnType<typeof base>>(
   propertyName: MaybeArray<PickNumberKeys<T['style']>>,
   defaultFrom?: MaybeArray<number>,
   defaultTo?: MaybeArray<number>,
   by?: EasingFunction,
-): Animation<T> {
+): Animation<Widget> {
   return defineAnimation({
     act: (
       widget: T,

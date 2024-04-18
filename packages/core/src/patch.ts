@@ -82,6 +82,9 @@ export async function patch(
   }
 
   try {
+    canvas.translate(now.x, now.y)
+    canvas.rotate(now.style.rotation, now.centerX, nows.centerY)
+    canvas.scale(now.style.scaleX, now.style.scaleY)
     now.draw(canvas, now as Record<string, any>)
   } catch {}
 

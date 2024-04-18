@@ -3,9 +3,10 @@ import {
   registerWidget,
   Widget,
   WidgetContext,
+  WidgetInput,
 } from './widget'
 import { $ck } from './engine'
-import type { Canvas } from 'canvaskit-wasm'
+import type { Canvas, CanvasKit } from 'canvaskit-wasm'
 export interface BaseOptions {
   style?: BaseStyle
   x?: number
@@ -23,14 +24,14 @@ export interface BaseStyle {
   transparency?: number
 }
 
-export function base() {
+export function base(): BaseOptions & WidgetInput {
   return defineWidgetInput({
-    init(context: WidgetContext, attrs: Record<string, unknown>) {
+    init(context: WidgetContext, attrs: BaseOptions) {
       return context
     },
-    predraw(context: WidgetContext) {
+    predraw(context: WidgetContext, attr: BaseOptions) {
       return new Map()
     },
-    draw(canvas: Canvas) {},
+    draw(canvas: Canvas, attr: BaseOptions) {},
   })
 }

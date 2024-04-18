@@ -1,4 +1,4 @@
-import { CarEngine, useFont, base } from 'newcar'
+import { CarEngine, useFont, base, createScene } from 'newcar'
 // import { Markdown } from '@newcar/mod-markdown'
 
 await useFont('https://storage.googleapis.com/skia-cdn/misc/Roboto-Regular.ttf')
@@ -9,7 +9,15 @@ const engine = await new CarEngine().init(
 
 const Base = engine.register(base())
 
-Base.create().set({})
+const root = Base.create().set({})
+
+const scene = createScene(root)
+
+const app = engine.createApp(document.querySelector('#a5'))
+
+app.checkout(scene)
+
+app.play()
 
 // import * as nc from 'newcar'
 

@@ -1,15 +1,12 @@
 import { Widget } from './widget'
 
-export interface Animation<T> {
-  act: (
-    widget: T,
-    elapsed: number,
-    process: number,
-    params?: any
-  ) => void
+export interface Animation<T extends Widget> {
+  act: (widget: T, elapsed: number, process: number, params?: any) => void
 }
 
-export function defineAnimation<T extends Widget>(animation: Animation<T>): Animation<T> {
+export function defineAnimation(
+  animation: Animation<Widget>,
+): Animation<Widget> {
   return animation
 }
 

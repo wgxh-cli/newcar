@@ -42,7 +42,7 @@ export interface Widget {
   children: Widget[]
   context: WidgetContext
   style: Record<string, unknown>
-  create(attrs: Record<string, unknown>): this
+  create(...parameters: any[]): this
   animationInstances: AnimationInstance[]
   add(widget: Widget): this
   animate(
@@ -57,6 +57,7 @@ export interface Widget {
   updateMap: Map<string, () => void>
   draw(canvas: Canvas, attrs: Record<string, unknown>): void
   key: string
+  set(attrs: Record<string, unknown>): void
 }
 
 export interface WidgetInput {
@@ -73,8 +74,6 @@ export function defineWidgetInput(input: WidgetInput) {
   return input
 }
 
-export const context = createWidgetContext($ck)
-
 export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
   return {
     attrs: {},
@@ -86,10 +85,12 @@ export function registerWidget(input: WidgetInput, ck: CanvasKit): Widget {
     updateMap: null,
     key: null,
     draw: input.draw,
-    create(attrs: Record<string, unknown>) {
+    set(attrs: Record<string, unknown>) {
       this.attrs = attrs
+    },
+    create(...parameters) {
       this.context = input.init(this.context, this.attrs)
-      this.updateMap = input.predraw(context, this as Record<string, any>)
+      this.updateMap = input.predraw(this.context, this as Record<string, any>)
       this.key = `widget-${1}-${performance.now()}-${Math.random()
         .toString(16)
         .slice(2)}`

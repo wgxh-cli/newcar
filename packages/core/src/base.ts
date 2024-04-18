@@ -1,6 +1,11 @@
-import { defineWidgetInput, registerWidget, Widget, WidgetContext } from "./widget";
-import { $ck } from "./engine";
-import type { Canvas } from "canvaskit-wasm";
+import {
+  defineWidgetInput,
+  registerWidget,
+  Widget,
+  WidgetContext,
+} from './widget'
+import { $ck } from './engine'
+import type { Canvas } from 'canvaskit-wasm'
 export interface BaseOptions {
   style?: BaseStyle
   x?: number
@@ -18,14 +23,14 @@ export interface BaseStyle {
   transparency?: number
 }
 
-const input = defineWidgetInput({
-  init(context: WidgetContext, attrs: Record<string, unknown>) {
-    return context
-  },
-  predraw(context: WidgetContext) {
-    return new Map()
-  },
-  draw(canvas: Canvas) {}
-})
-
-export const Base = registerWidget(input, $ck)
+export function base() {
+  return defineWidgetInput({
+    init(context: WidgetContext, attrs: Record<string, unknown>) {
+      return context
+    },
+    predraw(context: WidgetContext) {
+      return new Map()
+    },
+    draw(canvas: Canvas) {},
+  })
+}

@@ -1,7 +1,7 @@
-import { Canvas, CanvasKit } from "canvaskit-wasm"
-import { AsyncWidget, AsyncWidgetResponse } from "./asyncWidget"
-import { Widget } from "./widget"
-import { isEqual } from "@newcar/utils"
+import { Canvas, CanvasKit } from 'canvaskit-wasm'
+import { AsyncWidget, AsyncWidgetResponse } from './asyncWidget'
+import { Widget } from './widget'
+import { isEqual } from '@newcar/utils'
 
 export function shallowEqual(objA: any, objB: any): string[] {
   const changedProperties: string[] = []
@@ -30,7 +30,7 @@ export function shallowEqual(objA: any, objB: any): string[] {
 
   // Function to check if the value is of a primitive type or an array
   const isPrimitiveOrArray = (value: any) => {
-    return value !== Object(value) || Array.isArray(value);
+    return value !== Object(value) || Array.isArray(value)
   }
 
   for (let i = 0; i < lengthA; i++) {
@@ -41,7 +41,10 @@ export function shallowEqual(objA: any, objB: any): string[] {
       if (styleDifferences.length > 0) {
         changedProperties.push(key)
       }
-    } else if (!keysBSet.has(key) || (isPrimitiveOrArray(objA[key]) && objA[key] !== objB[key])) {
+    } else if (
+      !keysBSet.has(key) ||
+      (isPrimitiveOrArray(objA[key]) && objA[key] !== objB[key])
+    ) {
       changedProperties.push(key)
     }
   }
@@ -52,36 +55,23 @@ export function shallowEqual(objA: any, objB: any): string[] {
     if (!keysA.includes(key) && isPrimitiveOrArray(objB[key])) {
       changedProperties.push(key)
     }
-  });
+  })
 
   return changedProperties
 }
 
 export async function patch(
-  old: Widget | AsyncWidget,
-  now: Widget | AsyncWidget,
+  old: Widget,
+  now: Widget,
   ck: CanvasKit,
   canvas: Canvas,
 ) {
   canvas.save()
   const differences = shallowEqual(old, now)
   for (const param of differences) {
-    !now._isAsyncWidget()
-      ? (() => {
-          try {
-            now.preupdate(ck, param)
-          } catch {}
-        })()
-      : await (async () => {
-          try {
-            const res = await now.preupdate(ck, param)
-            if ((res as AsyncWidgetResponse).status === 'error') {
-              console.warn(
-                '[Newcar Warn] Failed to laod async widget, please check if your network.',
-              )
-            }
-          } catch {}
-        })()
+    try {
+      now.preupdate(ck, param)
+    } catch {}
     if (param === 'style') {
       const contrasts = shallowEqual(old.style, now.style)
       for (const contrast of contrasts) {
@@ -119,7 +109,7 @@ export async function patch(
       now.add(newChild) // Implement this function based on how you add children to canvas
     }
   }
-  
+
   canvas.restore()
 
   // Remove old widgets that are not present in new widgets

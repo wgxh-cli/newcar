@@ -4,7 +4,7 @@ export * from './app'
 export * from './plugin'
 export * from './scene'
 export * from './widget'
-export * from './asyncWidget'
+export * from './base'
 export * from './global'
 
 export * from './apiChangeProperty'
@@ -13,3 +13,5 @@ export * from './apiUseFont'
 export * from './apiUseImage'
 
 export * from './localApp'
+
+export * from './widget'

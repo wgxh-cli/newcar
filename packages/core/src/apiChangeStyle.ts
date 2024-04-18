@@ -1,4 +1,4 @@
-import { Widget, WidgetStyle } from './widget'
+import { Base, BaseStyle } from './widget'
 import { Animation, defineAnimation } from './animation'
 import { MaybeArray, PickNumberKeys } from './types'
 

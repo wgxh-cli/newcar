@@ -1,4 +1,4 @@
-import { Widget } from './widget'
+import { Widget } from './'
 
 export interface Animation<T> {
   act: (

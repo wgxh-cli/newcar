@@ -6,16 +6,25 @@ export interface WidgetInput<A, P> {
   attrs?: A
   params?: P
   init?(ck: CanvasKit): void
-  predraw?(ck: CanvasKit): Map<string, () => void>
+  predraw?(ck: CanvasKit): Map<string, (self: Widget) => void>
   draw?(canvas: Canvas): void
 }
 
-export function defineWidgetInput(
-  input: WidgetInput<{}, []>,
-): WidgetInput<{}, []> {
+export function defineWidgetInput<O = {}>(
+  input: WidgetInput<{}, []> & O,
+): WidgetInput<
+  {
+    style: {}
+  },
+  []
+> {
   return {
-    attrs: {},
-    params: [],
+    ...{
+      attrs: {
+        style: {},
+      },
+      params: [],
+    },
     ...input,
   }
 }
@@ -25,25 +34,25 @@ export interface WidgetInstance {
 }
 
 export interface Widget<A = {}, P = []> {
-  animationInstances: AnimationInstance[];
-  add(widget: Widget<A, P>): this;
+  animationInstances: AnimationInstance[]
+  add(widget: Widget<A, P>): this
   animate(
-      animation: Animation<Widget<A, P>>,
-      startAt: number,
-      during: number,
-      params?: Record<string, any>,
-  ): this;
-  runAnimation(elapsed: number): void;
-  setUpdate(updateFunc: (elapsed: number, widget: Widget<A, P>) => void): this;
-  updates: ((elapsed: number, widget: Widget<A, P>) => void)[];
-  updateMap: Map<string, () => void>;
-  draw(canvas: Canvas, attrs: A): void;
-  key: string;
-  set(attrs: A): Widget<A, P>;
-  children: Widget<A, P>[];
-  attrs: A;
-  params: P;
-  style?: BaseStyle;  // Ensure style is included
+    animation: Animation<Widget<A, P>>,
+    startAt: number,
+    during: number,
+    params?: Record<string, any>,
+  ): this
+  runAnimation(elapsed: number): void
+  setUpdate(updateFunc: (elapsed: number, widget: this) => void): this
+  updates: ((elapsed: number, widget: Widget<A, P>) => void)[]
+  updateMap: Map<string, () => void>
+  draw(canvas: Canvas, attrs: A): void
+  key: string
+  set(attrs: A): Widget<A, P>
+  children: Widget<A, P>[]
+  attrs: A
+  params: P
+  style?: BaseStyle // Ensure style is included
 }
 
 export function registerWidget<A extends Record<string, any>>(
@@ -55,7 +64,7 @@ export function registerWidget<A extends Record<string, any>>(
     create(...params) {
       return {
         attrs: {
-          ...input.attrs,
+          ...(input.attrs ?? {}),
           style: {
             scaleX: 1,
             scaleY: 1,

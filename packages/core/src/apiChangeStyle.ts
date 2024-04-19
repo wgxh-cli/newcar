@@ -17,7 +17,7 @@ type EasingFunction = (progress: number) => number
  * @param by Optional easing function to adjust the animation progress, can be overridden by params.by.
  * @returns An Animation object.
  */
-export function changeStyle<T extends typeof Basez>(
+export function changeStyle<T extends typeof Base>(
   propertyName: MaybeArray<PickNumberKeys<T['style']>>,
   defaultFrom?: MaybeArray<number>,
   defaultTo?: MaybeArray<number>,

@@ -1,12 +1,20 @@
+import { Widget } from '@newcar/core'
 import {
   BaseOptions,
   BaseStyle,
-  WidgetContext,
   defineWidgetInput,
 } from '@newcar/core'
 import { Canvas, CanvasKit, Image, Paint } from 'canvaskit-wasm'
 
-export interface ImageOptions extends BaseOptions {}
+export interface ImageOptions extends BaseOptions {
+  style: BaseStyle
+}
+
+export interface ImageInstance {
+  image?: Image
+  imageArray?: ArrayBuffer
+  paint?: Paint
+}
 
 // export class ImageWidget extends Widget {
 //   private image: Image
@@ -46,14 +54,25 @@ export interface ImageOptions extends BaseOptions {}
 // }
 
 export function image() {
-  return defineWidgetInput({
-    init(context: WidgetContext, attrs: ImageOptions) {
-      return context
+  return defineWidgetInput<ImageInstance>({
+    init(ck: CanvasKit) {
+      this.paint = new ck.Paint()
+      this.paint.setAlphaf(this.attrs.style.transparency)
+      try {
+        this.image = ck.MakeImageFromEncoded(this.params[0])
+      } catch (error) {}
     },
-    predraw(attrs: ImageOptions, ck: CanvasKit) {
+    predraw(ck: CanvasKit) {
       return new Map()
-        .set('imageArray', () => ck.MakeImageFromCanvasImageSource(this.imageArray))
+      .set('imageArray', () =>
+        ck.MakeImageFromEncoded(this.imageArray),
+      )
+      .set('style.transparency', (attrs: Base) => {
+        this.paint.setAlphaf(attrs.style.transparency)
+      })
     },
-    draw(canvas: Canvas, attrs: ImageOptions) {}
+    draw(canvas: Canvas) {
+      canvas.drawImage(this.image, 0, 0, this.paint)
+    },
   })
 }

@@ -1,15 +1,18 @@
-import { CarEngine, useFont, base, createScene } from 'newcar'
+import { CarEngine, useFont, base, image, useImage, createScene } from 'newcar'
 // import { Markdown } from '@newcar/mod-markdown'
 
 await useFont('https://storage.googleapis.com/skia-cdn/misc/Roboto-Regular.ttf')
+const img = await useImage('./dromara.png')
 
 const engine = await new CarEngine().init(
   './node_modules/canvaskit-wasm/bin/canvaskit.wasm',
 )
 
 const Base = engine.register(base())
+const Image = engine.register(image())
+// const Base = engine.register(base())
 
-const root = Base.create().set({})
+const root = Image.create(img)
 
 const scene = createScene(root)
 

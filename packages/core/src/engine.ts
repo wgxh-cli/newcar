@@ -2,8 +2,7 @@ import CanvasKitInit, { CanvasKit, CanvasKitInitOptions } from 'canvaskit-wasm'
 import { App } from './app'
 import { LocalApp } from './localApp'
 import type { CarPlugin } from './plugin'
-import { WidgetInput, registerWidget, Widget } from './widget'
-
+import { WidgetInput, registerWidget, WidgetInstance, Widget } from './widget'
 export let $ck: CanvasKit
 export class CarEngine {
   ck: CanvasKit
@@ -44,7 +43,7 @@ export class CarEngine {
     return app
   }
 
-  register(input: WidgetInput): Widget {
+  register(input: WidgetInput<Record<string, unknown>, unknown[]>): WidgetInstance {
     return registerWidget(input, this.ck)
   }
 }

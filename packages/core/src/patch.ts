@@ -1,6 +1,8 @@
 import { Canvas, CanvasKit } from 'canvaskit-wasm'
 import { Widget } from './widget'
 import { isEqual } from '@newcar/utils'
+import { BaseOptions, BaseParams, base } from './base'
+import { WidgetSelf } from './types'
 
 export function shallowEqual(objA: any, objB: any): string[] {
   const changedProperties: string[] = []
@@ -59,65 +61,34 @@ export function shallowEqual(objA: any, objB: any): string[] {
   return changedProperties
 }
 
-export async function patch(
-  old: Widget,
-  now: Widget,
+export async function patch<T extends Widget<BaseOptions, BaseParams>>(
+  old: T,
+  now: T,
   ck: CanvasKit,
   canvas: Canvas,
 ) {
-  canvas.save()
-  const differences = shallowEqual(old, now)
+  canvas.save();
+  const differences = shallowEqual(old.attrs, now.attrs);
   for (const param of differences) {
     try {
-      now.updateMap.get(param)()
+      now.updateMap.get(param)?.();
     } catch {}
-    if (param === 'style') {
-      const contrasts = shallowEqual(old.style, now.style)
-      for (const contrast of contrasts) {
+    if (param === 'style' && now.style && old.style) {
+      const styleDifferences = shallowEqual(old.style, now.style);
+      for (const styleParam of styleDifferences) {
         try {
-          now.updateMap.get(`style.${param}`)()
+          now.updateMap.get(`style.${styleParam}`)?.();
         } catch {}
       }
     }
   }
 
-  try {
-    canvas.translate(now.x, now.y)
-    canvas.rotate(now.style.rotation, now.centerX, nows.centerY)
-    canvas.scale(now.style.scaleX, now.style.scaleY)
-    now.draw(canvas, now as Record<string, any>)
-  } catch {}
-
-  const oldKeyToIdx = new Map<string, number>()
-  const newKeyToIdx = new Map<string, number>()
-
-  // Handle children
-  old.children.forEach((child, index) => {
-    oldKeyToIdx.set(child.key, index)
-  })
-  now.children.forEach((child, index) => {
-    newKeyToIdx.set(child.key, index)
-  })
-
-  // Update and add new widgets
-  let oldIndex, newIndex
-  for (const newChild of now.children) {
-    oldIndex = oldKeyToIdx.get(newChild.key)
-    if (oldIndex !== undefined) {
-      const oldChild = old.children[oldIndex]
-      await patch(oldChild, newChild, ck, canvas)
-    } else {
-      // Add new child since it doesn't exist in the old children
-      now.add(newChild) // Implement this function based on how you add children to canvas
-    }
+  if (now.style) {
+    canvas.translate(now.x ?? 0, now.y ?? 0);
+    canvas.rotate(now.style.rotation ?? 0, now.centerX ?? 0, now.centerY ?? 0);
+    canvas.scale(now.style.scaleX ?? 1, now.style.scaleY ?? 1);
   }
 
-  canvas.restore()
-
-  // Remove old widgets that are not present in new widgets
-  old.children.forEach((oldChild, oldIndex) => {
-    if (!newKeyToIdx.has(oldChild.key)) {
-      now.children.find((value) => oldChild === value) // Implement this function based on how you remove children from canvas
-    }
-  })
+  now.draw(canvas, now.attrs);
+  canvas.restore();
 }

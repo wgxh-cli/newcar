@@ -23,12 +23,21 @@ export interface BaseStyle {
   transparency?: number
 }
 
-export function base(): WidgetInput {
+export type BaseParams = []
+
+export function base(): WidgetInput<BaseOptions, BaseParams> {
   return defineWidgetInput({
-    init(ck: CanvasKit) {},
-    predraw(ck: CanvasKit) {
-      return new Map()
+    init(ck: CanvasKit) {
+      // Initialize with default styles or other necessary properties
     },
-    draw(canvas: Canvas) {},
+    predraw(ck: CanvasKit) {
+      const map = new Map<string, () => void>();
+      // Define how style changes should be handled, if necessary
+      map.set("style.rotation", () => { /* handle rotation changes */ });
+      return map;
+    },
+    draw(canvas: Canvas) {
+      // Drawing logic considering the style
+    },
   })
 }

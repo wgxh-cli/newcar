@@ -4,6 +4,7 @@ export * from './app'
 export * from './plugin'
 export * from './scene'
 export * from './widget'
+export * from './widget3d'
 export * from './asyncWidget'
 export * from './global'
 
